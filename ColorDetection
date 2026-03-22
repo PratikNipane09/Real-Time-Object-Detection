@@ -1,0 +1,44 @@
+import cv2
+from PIL import Image
+from Utilities import get_limits
+
+Yellow = [0, 255, 255] # Yellow in BGR Colorspace
+Webcam = cv2.VideoCapture(1)
+
+LowerLimit, UpperLimit = get_limits(color=Yellow)
+
+while True:
+    ret, frame = Webcam.read()
+
+    if ret:
+        resized_webcam = cv2.resize(frame, (1080, 720))
+
+        Flipped_Webcam = cv2.flip(resized_webcam, 1)
+
+        HSV_Image = cv2.cvtColor(Flipped_Webcam, cv2.COLOR_BGR2HSV)
+
+        Mask = cv2.inRange(HSV_Image, LowerLimit, UpperLimit)
+        Mask_ = Image.fromarray(Mask)
+        BBox = Mask_.getbbox()
+
+        display_frame = Flipped_Webcam.copy()
+
+        if BBox is not None:
+           x1, y1, x2, y2 = BBox
+
+           cv2.rectangle(display_frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
+
+        print(BBox)
+
+        cv2.imshow('WEBCAM', display_frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+           break
+         
+        if cv2.getWindowProperty('WEBCAM', cv2.WND_PROP_VISIBLE) < 1:
+           break
+    else:
+       break
+
+Webcam.release()
+cv2.destroyAllWindows()
